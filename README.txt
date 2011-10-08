@@ -1,2 +1,51 @@
 
-utwhisper -- Python application to control utserver from console.
+utwhisper -- control your utserver (utorrent for linux) using console.
+
+Tested with Python 2.7.2.
+
+
+
+
+TODO:
+
+	* addfile method NOT implemented. see below for workaround.
+	* at TorrentFiles, TorrentJob, TorrentProperties some types need to be
+		converted into more human-friendly format. i.e bytes into MB and etc.
+	* refactoring
+	* getting arguments from console implementation is _ugly_
+	* add exceptions for stability
+	* improve all the connection stuff.
+	
+
+using setsettings method:
+	this method gets a string in 'setting=value' format.
+	to change multiple settings use '&', 'setting=value&setting2=value'.
+	
+	instead of true/false use 1/0.
+	example: 'gui.graphic_progress=false&max_ul_rate=10'
+	
+	
+workaround for addfile method:
+	To add .torrent files from your local drive we will create 
+		autoload directory and add it to the utserver.conf file.
+		
+	
+	1. create an autoload dir. 
+		When .torrent file will be putted there utserver will add 
+			it automatically.
+
+		$ mkdir /home/user/torrents-autoload
+       
+	2. let's add our auto load dir into utserver.conf:
+
+		echo "dir_autoload: /home/user/torrents-autoload/" >> fullpath/utorrent-server-v3_0/utserver.conf
+
+	Now, just put the torrents file into that dir, and they will be added 
+		automatically.
+
+	cp torrentfile.torrent /home/user/torrents-autoload
+	
+Done.
+
+
+

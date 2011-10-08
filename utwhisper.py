@@ -4,13 +4,6 @@ import re
 import json
 import sys
 
-# TODO
-# * addfile method. laziness.
-# * at TorrentFiles, TorrentJob, TorrentProperties some types need to
-#       converted into more friendly-human format. i.e size of file from bytes to MB
-# * refactoring.
-# * arguments and options implementation is ugly.
-# * add exception for stability.
 
 # timeout error:
 # urllib2.URLError: <urlopen error [Errno 10060] A connection attempt failed becau
@@ -35,22 +28,29 @@ class Torrent:
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
         token_location = self.webui + 'token.html'
+        
+        # open token location
         response = urllib2.urlopen(token_location)
-    
-        cookie = response.headers['Set-Cookie'] # cookie
-        #print "[dbg] Cookie ... " + cookie # DEBUG
+
+        # get cookie
+        cookie = response.headers['Set-Cookie']
+        
+        #print "[dbg] Cookie ... " + cookie
         response = response.read()
-    
+
+        # extract token
         token = re.compile('>([^<]+)<')
         matches = re.search(token, response)
-        token = matches.group(0)[1:-1] # token
-        #print "[dbg] Token ... " + token # DEBUG
+        token = matches.group(0)[1:-1]
         
+        #print "[dbg] Token ... " + token
+
+        # return token and cookie
         return (token, cookie)
     
     def __request(self, action):
         """
-                all API actions goes thru this method.
+        all API actions goes thru this method.
         each action must start with &.
         """
         
@@ -58,25 +58,30 @@ class Torrent:
         auth_handler.add_password(realm='uTorrent', uri=self.webui, user=self.username, passwd=self.passwd)
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
-    
-        (token, cookie) = self.__auth() # authentication
-        opener.addheaders = [('Cookie', cookie)] # put the cookie from auth() in header.
+
+         # get the token, cookie.
+        (token, cookie) = self.__auth()
+
+        # since every request needs a cookie, put it into header.
+        opener.addheaders = [('Cookie', cookie)]
         urllib2.install_opener(opener)
     
         target = self.webui + "?token=" + token + action
-        
         print "[dbg] Request ... " + target # DEBUG
+
         response = urllib2.urlopen(target)
+
+        # json
         data = response.read()
-        print "[dbg] Data size: %s" % (len(data)) # DEBUG
+        print "[dbg] Data size: %s\n" % (len(data)) # DEBUG
         return data
 
     def hashtable(self):
-        """ print table index->torrent hash->torrent name """
+        """ print table index | torrent hash | torrent name """
         torrents = json.loads(self.__request("&list=1"))['torrents']
         index = 0
         for each in torrents:
-                # index, each[0]->torrent hash, each[2]->torrent name
+                # index | each[0]->torrent hash | each[2]->torrent name
                 print "%s -> %s -> %s\n" % (index, each[0], each[2])
                 index += 1
 
@@ -86,7 +91,7 @@ class Torrent:
         return json.loads(self.__request("&list=1"))['torrents'][index][0]
 
 
-        # actions
+    # ACTIONS
     def torrents_list(self):
         """
         API: list=1 
@@ -98,8 +103,9 @@ class Torrent:
 
     def getsettings(self):
         """ API: action=getsettings """
-        print self.__request("&action=getsettings")
 
+        print self.__request("&action=getsettings")
+        
     def getfiles(self, torrent_index):
         """ API: action=getfiles&hash=[TORRENT HASH] """
 
@@ -108,6 +114,28 @@ class Torrent:
         files.print_files()
         #return self.__request("&action=getfiles&hash=" + self.index2hash(torrent_index))
 
+    def setsettings(self, options):
+        """
+        API:
+            change setting: action=setsetting&s=[SETTING]&v=[VALUE]
+            change _multiple_ settings: action=setsetting&s=[SETTING]&v=[VALUE]&s=[SETTING_2]&v=[VALUE_2]
+            ex: action=setsetting&s=max_ul_rate&v=10&s=max_dl_rate&v=40
+        """
+        options = re.sub('\s+', '', options)
+
+        req = '&action=setsetting'
+        splitted = options.split('&')
+        for opts in splitted:
+            try:
+                (setting, value) = opts.split('=')
+            except:
+                print "[Error]: Failed to parse `{0}`".format(options)
+                return 0
+            req += "&s=" + setting + "&v=" + value
+
+        self.__request(req)
+
+    
     def torrentprops(self, torrent_index):
         """ API:  action=getprops&hash=[TORRENT HASH] """
         #print self.__request("&action=getprops&hash=" + self.index2hash(torrent_index))
@@ -164,7 +192,7 @@ class Torrent:
         2 = Normal Priority
         3 = High Priority
         """
-        #print self.__request("action=setprio&hash=[TORRENTHASH]&p=[PRIORITY]&f=[FILE INDEX]")
+        
         print self.__request("&action=setprio&hash=" + self.index2hash(torrent_index)
                        + "&p=" + str(priority) + "&f=" + str(file_index))
 
@@ -180,27 +208,47 @@ class Torrent:
         """ API: action=getversion """
         print self.__request("&action=getversion")
 
-    def addurl(self, torrent_url):
-        """ API: action=add-url&s=[TORRENT URL] """
-        # optional
-        # &download_dir=<integer>
-        # &path=<sub_path>
+    def addurl(self, torrent_url, download_dir=0, path=''):
+        """
+        API: action=add-url&s=[TORRENT URL]
         
-        print self.__request("&action=add-url&s=" + torrent_url)
+        Optional:
+            &download_dir=<integer>
+            &path=<sub_path>
+        """
+
+        addurl_req = "&action=add-url&s=" + torrent_url
+        
+        # optional parameters
+        if download_dir > 0:
+            addurl_req += "&download_dir=" + str(download_dir)
+        if path != '':
+            addurl_req += "&path=" + path
+            
+        print self.__request(addurl_req)
 
     def addfile(self):
-        # TODO
-        # lazy to implement this.
-        # http://www.doughellmann.com/PyMOTW/urllib2/
-        """ API: action=add-file """
-        # action=add-file
+        """
+        # NOT IMPLEMENTED. have issues with that one.
+        # helpful: http://www.doughellmann.com/PyMOTW/urllib2/
+        
+        API: action=add-file
+        """
         pass
 
     def listdirs(self):
         """ API: action=list-dirs """
         #action=list-dirs
-        pass
+        
+        dir_list = json.loads(self.__request("&action=list-dirs"))["download-dirs"]
 
+        index = 0
+        for each in dir_list:
+            print "index: {0}".format(index)
+            print "path: {:>4}".format(each['path'])
+            print "free: {:>4}\n".format(each['available'])
+            
+            index += 1
 
 
     def request(self, action):
@@ -329,8 +377,9 @@ class TorrentJob:
                 
                 # and etc.
 
+    
 
-# handle arguments and options.
+# get console arguments
 
 args = sys.argv[1:]
 torrent = Torrent()
@@ -397,6 +446,9 @@ elif '--get-version' in args:
         
 elif '--add-url' in args:
         torrent.addurl(args[2])
+
+#elif '--add-file' in args:
+#        torrents.addurl(args[2], args[3])
         
 elif '--list-dirs' in args:
         torrent.listdirs()
