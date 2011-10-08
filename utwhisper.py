@@ -3,44 +3,40 @@ import urllib2
 import re
 import json
 import sys
-
-import pickle
+import settings
 
 class Torrent:
-    
-    def __init__(self):
-        self.webui = 'http://10.0.0.3:8081/gui/'
-        self.username = 'root'
-        self.passwd = 'torrent'
-    
-        
-    def __auth(self):
-        """
-                extracts token and cookie.
-        """
+
+    def __set_opener(self):
+        """ returns an opener with url, user, passwd """
         auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password(realm='uTorrent', uri=self.webui, user=self.username, passwd=self.passwd)
+        auth_handler.add_password(realm='uTorrent', uri=settings.WEBUI, user=settings.USER, passwd=settings.PASSWD)
         opener = urllib2.build_opener(auth_handler)
+        return opener
+    
+    def __token(self):
+        """
+        extract token and cookie
+        """
+
+        opener = self.__set_opener()
         urllib2.install_opener(opener)
-        token_location = self.webui + 'token.html'
+        token_location = settings.WEBUI + 'token.html'
         
         # open token location
         response = urllib2.urlopen(token_location)
 
         # get cookie
         cookie = response.headers['Set-Cookie']
-        
         #print "[dbg] Cookie ... " + cookie
+        
         response = response.read()
 
         # extract token
         token = re.compile('>([^<]+)<')
         matches = re.search(token, response)
         token = matches.group(0)[1:-1]
-        
         #print "[dbg] Token ... " + token
-
-        # return token and cookie
 
         # save token & cookie for reuse.
         authreuse = open("authreuse", "w")
@@ -54,67 +50,57 @@ class Torrent:
         all API actions goes thru this method.
         each action must start with &.
         """
-        
-        auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password(realm='uTorrent', uri=self.webui, user=self.username, passwd=self.passwd)
-        opener = urllib2.build_opener(auth_handler)
-        urllib2.install_opener(opener)
 
-         # get the token, cookie.
-        #(token, cookie) = self.__auth()
+        opener = self.__set_opener()
 
         # try to load previous token & cookie
         try:
             authreuse = open("authreuse", "r")
             token, cookie = authreuse.read().split("%")
-            print "[dbg]: reusing:\nToken: {0}\n Cookie: {1}".format(token, cookie)
+            print "[dbg]: reusing:\nToken: {0}\n Cookie: {1}\n".format(token, cookie)
         except:
-            # token or cookie not reusable, requesting new.
+            # token or cookie not reusable, requesting new
             print "[dbg]: request new token, cookie"
-            (token, cookie) = self.__auth()
+            (token, cookie) = self.__token()
         
         # since every request needs a cookie, put it into header.
         opener.addheaders = [('Cookie', cookie)]
         urllib2.install_opener(opener)
     
-        target = self.webui + "?token=" + token + action
-        print "[dbg] Request ... " + target # DEBUG
+        target = settings.WEBUI + "?token=" + token + action
+        print "[dbg] Request ... " + target
 
         response = urllib2.urlopen(target)
 
-        # json
+        # we got json
         data = response.read()
-        print "[dbg] Data size: %s\n" % (len(data)) # DEBUG
+        print "[dbg] Data size: %s\n" % (len(data))
         return data
 
     def hashtable(self):
-        """ print table index | torrent hash | torrent name """
+        """ prints for each torrent it's hash, index and name """
         torrents = json.loads(self.__request("&list=1"))['torrents']
         index = 0
         for each in torrents:
-                # index | each[0]->torrent hash | each[2]->torrent name
-                print "%s -> %s -> %s\n" % (index, each[0], each[2])
+                print "{0} -> {1} -> {2}\n".format(index, each[0], each[2])
                 index += 1
 
     def index2hash(self, index):
         """ get torrent index and return torrent hash """
-        # return self.torrent_index[index]
         return json.loads(self.__request("&list=1"))['torrents'][index][0]
 
 
     # ACTIONS
     def torrents_list(self):
-        """
-        API: list=1 
-        """
+        """ API: list=1 """
         #print self.__request("&list=1")
         torrents = json.loads(self.__request("&list=1"))['torrents']
+        print torrents
         torrent_props = TorrentProperties(torrents)
-        torrent_props.print_all()
+        #torrent_props.print_all()
 
     def getsettings(self):
         """ API: action=getsettings """
-
         print self.__request("&action=getsettings")
         
     def getfiles(self, torrent_index):
