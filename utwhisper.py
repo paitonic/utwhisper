@@ -4,12 +4,7 @@ import re
 import json
 import sys
 
-
-# timeout error:
-# urllib2.URLError: <urlopen error [Errno 10060] A connection attempt failed becau
-# se the connected party did not properly respond after a period of time, or estab
-# lished connection failed because connected host has failed to respond>
-                
+import pickle
 
 class Torrent:
     
@@ -46,6 +41,12 @@ class Torrent:
         #print "[dbg] Token ... " + token
 
         # return token and cookie
+
+        # save token & cookie for reuse.
+        authreuse = open("authreuse", "w")
+        authreuse.write(token + "%" + cookie)
+        authreuse.close()
+        
         return (token, cookie)
     
     def __request(self, action):
@@ -60,8 +61,18 @@ class Torrent:
         urllib2.install_opener(opener)
 
          # get the token, cookie.
-        (token, cookie) = self.__auth()
+        #(token, cookie) = self.__auth()
 
+        # try to load previous token & cookie
+        try:
+            authreuse = open("authreuse", "r")
+            token, cookie = authreuse.read().split("%")
+            print "[dbg]: reusing:\nToken: {0}\n Cookie: {1}".format(token, cookie)
+        except:
+            # token or cookie not reusable, requesting new.
+            print "[dbg]: request new token, cookie"
+            (token, cookie) = self.__auth()
+        
         # since every request needs a cookie, put it into header.
         opener.addheaders = [('Cookie', cookie)]
         urllib2.install_opener(opener)
