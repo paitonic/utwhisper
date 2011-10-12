@@ -24,7 +24,13 @@ class Torrent:
         token_location = settings.WEBUI + 'token.html'
         
         # open token location
-        response = urllib2.urlopen(token_location)
+        try:
+            response = urllib2.urlopen(token_location)
+        except:
+            print "[error]: error opening token page.\nCheck your settings at settings.py.\nexiting."
+            sys.exit(0)
+            # exit
+            
 
         # get cookie
         cookie = response.headers['Set-Cookie']
@@ -39,7 +45,7 @@ class Torrent:
         #print "[dbg] Token ... " + token
 
         # save token & cookie for reuse.
-        authreuse = open("authreuse", "w")
+        authreuse = open(settings.AUTH_SAVE_PATH, "w")
         authreuse.write(token + "%" + cookie)
         authreuse.close()
         
@@ -55,9 +61,9 @@ class Torrent:
 
         # try to load previous token & cookie
         try:
-            authreuse = open("authreuse", "r")
+            authreuse = open(settings.AUTH_SAVE_PATH, "r")
             token, cookie = authreuse.read().split("%")
-            print "[dbg]: reusing:\nToken: {0}\n Cookie: {1}\n".format(token, cookie)
+            print "[dbg]: reusing:\nToken: {0}\nCookie: {1}\n".format(token, cookie)
         except:
             # token or cookie not reusable, requesting new
             print "[dbg]: request new token, cookie"
@@ -70,8 +76,15 @@ class Torrent:
         target = settings.WEBUI + "?token=" + token + action
         print "[dbg] Request ... " + target
 
-        response = urllib2.urlopen(target)
-
+        try:
+            response = urllib2.urlopen(target)
+        except:
+            print "[error]: error opening {0}\nCleaning auth data at{1}. Try again now.\nexiting.".format(target, settings.AUTH_SAVE_PATH)
+            authreuse = open(settings.AUTH_SAVE_PATH, "w")
+            authreuse.close()
+            sys.exit(0)
+            # exit
+                                                                                 
         # we got json
         data = response.read()
         print "[dbg] Data size: %s\n" % (len(data))
@@ -90,7 +103,7 @@ class Torrent:
         return json.loads(self.__request("&list=1"))['torrents'][index][0]
 
 
-    # ACTIONS
+##### API ######
     def torrents_list(self):
         """ API: list=1 """
         #print self.__request("&list=1")
@@ -247,7 +260,8 @@ class Torrent:
             
             index += 1
 
-
+##### ENDOF API ######
+            
     def request(self, action):
         """
         pass your own request
