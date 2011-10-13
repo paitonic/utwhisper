@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Usage &mdash; utwhisper v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="utwhisper v0.1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to utwhisper’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <h1><a href="index.html">utwhisper v0.1 documentation</a></h1>
+        <div class="rel">
+          <a href="index.html" title="Welcome to utwhisper’s documentation!"
+             accesskey="P">previous</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="add-torrent-from-local-drive">
+<h2>Add torrent from local drive<a class="headerlink" href="#add-torrent-from-local-drive" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Since <strong>addfile</strong> from the API is not implemented there is a workaround for</dt>
+<dd><p class="first">adding .torrent files from your local drive.</p>
+<p>We will create autoload directory and add it to the <strong>utserver.conf</strong> file.</p>
+<ol class="arabic">
+<li><dl class="first docutils">
+<dt>create an autoload dir.</dt>
+<dd><dl class="first docutils">
+<dt>When .torrent file will be putted there utserver will add</dt>
+<dd><p class="first last">it automatically.</p>
+</dd>
+</dl>
+<p class="last"><tt class="docutils literal"><span class="pre">$</span> <span class="pre">mkdir</span> <span class="pre">/home/user/torrents-autoload</span></tt></p>
+</dd>
+</dl>
+</li>
+<li><p class="first">let&#8217;s add our auto load dir into <strong>utserver.conf</strong>:</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">echo</span> <span class="pre">&quot;dir_autoload:</span> <span class="pre">/home/user/torrents-autoload/&quot;</span> <span class="pre">&gt;&gt;</span> <span class="pre">fullpath/utorrent-server-v3_0/utserver.conf</span></tt></p>
+</div></blockquote>
+</li>
+</ol>
+<dl class="docutils">
+<dt>Now, just put the torrents file into that dir, and they will be added</dt>
+<dd>automatically.</dd>
+</dl>
+<p class="last"><tt class="docutils literal"><span class="pre">cp</span> <span class="pre">torrentfile.torrent</span> <span class="pre">/home/user/torrents-autoload</span></tt></p>
+</dd>
+</dl>
+</div>
+<div class="section" id="set-user-passwd-webui">
+<h2>Set user, passwd, webui<a class="headerlink" href="#set-user-passwd-webui" title="Permalink to this headline">¶</a></h2>
+<p>Set <cite>user</cite>, <cite>passwd</cite>, <cite>webui</cite> in settings.py.</p>
+</div>
+<div class="section" id="adding-a-torrent">
+<h2>Adding a torrent<a class="headerlink" href="#adding-a-torrent" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">addurl</span></tt> comand receives following arguments:</dt>
+<dd><ol class="first arabic simple">
+<li>URL</li>
+<li>Download directory (number) (optional argument)</li>
+<li>Path (optional argument)</li>
+</ol>
+<p>Download torrent to default download directory:</p>
+<p><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--addurl</span> <span class="pre">http://thepiratebay.org/torrent/</span></tt></p>
+<p>Download torrent to download directory 1:</p>
+<p class="last"><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--addurl</span> <span class="pre">http://thepiratebay.org/wtf.torrent</span> <span class="pre">1</span></tt></p>
+</dd>
+</dl>
+</div>
+<div class="section" id="hashtable-command">
+<h2>hashtable command<a class="headerlink" href="#hashtable-command" title="Permalink to this headline">¶</a></h2>
+<p>Every torrent has a hash by which it can be identified, since it&#8217;s very
+long and uncomfortable, an index was assigned to every hash.</p>
+<p>All commands working with the index parameter instead of hash.
+To see list of torrents and their hashes, indexes use hashtable command:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--hashtable</span></tt></div></blockquote>
+<p>Output:</p>
+<blockquote>
+<div><p>index:0
+hash:5D4C6DA550FA6B9BD18E1A4B0F9CBB0092B206B3
+torrent:Movie.avi</p>
+<p>index:1
+hash:74612CAD42525DD50F6BDB56V395C5DE84175D38
+torrent:tv-series.avi</p>
+<p>index:2
+hash:91ACF1734F3BD8E64D4430CFF72992D5AC083C43
+torrent:wallpapers.rar</p>
+</div></blockquote>
+</div>
+<div class="section" id="stop-start-pause-unpause-forcestart">
+<h2>Stop/Start/Pause/Unpause/Forcestart<a class="headerlink" href="#stop-start-pause-unpause-forcestart" title="Permalink to this headline">¶</a></h2>
+<p>start torrent:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--start</span> <span class="pre">INDEX</span></tt></div></blockquote>
+<p>stop torrent:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--stop</span> <span class="pre">INDEX</span></tt></div></blockquote>
+<p>pause torrent:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--pause</span> <span class="pre">INDEX</span></tt></div></blockquote>
+<p>force start torrent:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--forcestart</span> <span class="pre">INDEX</span></tt></div></blockquote>
+<p>unpause torrent:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--unpause</span> <span class="pre">INDEX</span></tt></div></blockquote>
+</div>
+<div class="section" id="torrents-list">
+<h2>Torrents list<a class="headerlink" href="#torrents-list" title="Permalink to this headline">¶</a></h2>
+<p>To see all torrent jobs:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--torrentslist</span> <span class="pre">[INDEX]</span></tt></div></blockquote>
+</div>
+<div class="section" id="view-utorrent-settings">
+<h2>View utorrent settings<a class="headerlink" href="#view-utorrent-settings" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--getsettings</span></tt></p>
+</div>
+<div class="section" id="set-utorrent-settings">
+<h2>Set utorrent settings<a class="headerlink" href="#set-utorrent-settings" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--setsettings</span> <span class="pre">[SETTING=VALUE]</span></tt></p>
+<p>You can set settings using SETTING=VALUE format</p>
+<p>Example:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--setsettings</span> <span class="pre">gui.graphic_progress=0</span></tt></div></blockquote>
+<p><em>Note: use 1/0 instead of true/false.</em></p>
+</div>
+<div class="section" id="see-what-files-and-their-properties-included-in-specific-torrent">
+<h2>See what files and their properties included in specific torrent<a class="headerlink" href="#see-what-files-and-their-properties-included-in-specific-torrent" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--getfiles</span> <span class="pre">0</span></tt></p>
+</div>
+<div class="section" id="see-properties-for-a-torrent-job">
+<h2>See properties for a torrent job<a class="headerlink" href="#see-properties-for-a-torrent-job" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--getprops</span> <span class="pre">INDEX</span></tt></p>
+</div>
+<div class="section" id="recheck-torrent-contents-for-a-torrent">
+<h2>Recheck torrent contents for a torrent<a class="headerlink" href="#recheck-torrent-contents-for-a-torrent" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--recheck</span> <span class="pre">INDEX</span></tt></p>
+</div>
+<div class="section" id="remove-torrent-from-the-job-list">
+<h2>Remove torrent from the job list<a class="headerlink" href="#remove-torrent-from-the-job-list" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--remove</span> <span class="pre">INDEX</span></tt></p>
+</div>
+<div class="section" id="remove-torrent-from-the-job-list-and-it-s-content">
+<h2>Remove torrent from the job list and it&#8217;s content<a class="headerlink" href="#remove-torrent-from-the-job-list-and-it-s-content" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--removedata</span> <span class="pre">INDEX</span></tt></p>
+</div>
+<div class="section" id="remove-torrent-from-the-job-list-and-torrent-files-itself">
+<h2>Remove torrent from the job list and torrent files itself<a class="headerlink" href="#remove-torrent-from-the-job-list-and-torrent-files-itself" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--removetorrent</span> <span class="pre">INDEX</span></tt></p>
+</div>
+<div class="section" id="remove-content-torrent-file-and-job-from-the-job-list">
+<h2>Remove content, torrent file, and job from the job list<a class="headerlink" href="#remove-content-torrent-file-and-job-from-the-job-list" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--removedatatorrent</span> <span class="pre">INDEX</span></tt></p>
+</div>
+<div class="section" id="transfer-history">
+<h2>Transfer history<a class="headerlink" href="#transfer-history" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--transferhistory</span></tt></p>
+</div>
+<div class="section" id="information-about-the-server">
+<h2>Information about the server<a class="headerlink" href="#information-about-the-server" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--getversion</span></tt></p>
+</div>
+<div class="section" id="list-of-download-directories">
+<h2>List of download directories<a class="headerlink" href="#list-of-download-directories" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--listdirs</span></tt></p>
+</div>
+<div class="section" id="pass-your-own-request-to-the-server">
+<h2>Pass your own request to the server<a class="headerlink" href="#pass-your-own-request-to-the-server" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--request</span> <span class="pre">REQUEST</span></tt></p>
+<p>example 1:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--request</span> <span class="pre">getsettings</span></tt></div></blockquote>
+<p>example 2:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--request</span> <span class="pre">&quot;getfiles&amp;hash=1A824A2D4399A5F1CAED59B31CD91F0F513967BB&quot;</span></tt></div></blockquote>
+</div>
+<div class="section" id="set-priority-for-a-file-in-a-torrent-job">
+<h2>Set priority for a file in a torrent job<a class="headerlink" href="#set-priority-for-a-file-in-a-torrent-job" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">--setprio</span> <span class="pre">INDEX</span> <span class="pre">FILE_INDEX</span> <span class="pre">PRIORITY</span></tt></p>
+<p>PRIORITY can be one of the following:</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">0</span> <span class="pre">=</span> <span class="pre">Don't</span> <span class="pre">download</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">1</span> <span class="pre">=</span> <span class="pre">Low</span> <span class="pre">priority</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">2</span> <span class="pre">=</span> <span class="pre">Normal</span> <span class="pre">priority</span></tt></p>
+<p><tt class="docutils literal"><span class="pre">3</span> <span class="pre">=</span> <span class="pre">High</span> <span class="pre">priority</span></tt></p>
+</div></blockquote>
+<p>FILE_INDEX, files in a torrent job have index too, use <tt class="docutils literal"><span class="pre">--getfiles</span> <span class="pre">INDEX</span></tt> to find out the index.</p>
+<p>example:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">python</span> <span class="pre">utwhisper.py</span> <span class="pre">--setprio</span> <span class="pre">3</span> <span class="pre">4</span> <span class="pre">0</span></tt></div></blockquote>
+<p>read as: for torrent number 3, for file number 4, set priority to 0 (Dont Download)</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#add-torrent-from-local-drive">Add torrent from local drive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#set-user-passwd-webui">Set user, passwd, webui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-torrent">Adding a torrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hashtable-command">hashtable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stop-start-pause-unpause-forcestart">Stop/Start/Pause/Unpause/Forcestart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#torrents-list">Torrents list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#view-utorrent-settings">View utorrent settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#set-utorrent-settings">Set utorrent settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-what-files-and-their-properties-included-in-specific-torrent">See what files and their properties included in specific torrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-properties-for-a-torrent-job">See properties for a torrent job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recheck-torrent-contents-for-a-torrent">Recheck torrent contents for a torrent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remove-torrent-from-the-job-list">Remove torrent from the job list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remove-torrent-from-the-job-list-and-it-s-content">Remove torrent from the job list and it&#8217;s content</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remove-torrent-from-the-job-list-and-torrent-files-itself">Remove torrent from the job list and torrent files itself</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remove-content-torrent-file-and-job-from-the-job-list">Remove content, torrent file, and job from the job list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transfer-history">Transfer history</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#information-about-the-server">Information about the server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#list-of-download-directories">List of download directories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pass-your-own-request-to-the-server">Pass your own request to the server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#set-priority-for-a-file-in-a-torrent-job">Set priority for a file in a torrent job</a></li>
+</ul>
+</li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="index.html" title="Welcome to utwhisper’s documentation!"
+             >previous</a> |
+          <a href="genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="_sources/usage.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2011, tranqil.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

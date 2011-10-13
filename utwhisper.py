@@ -1,11 +1,48 @@
 
+"""
+Usage: utwhisper.py --[COMMAND] [OPTIONS]
+    options marked [*OPTIONS] are not mandatory.
+    examples: utwhisper.py
+                --hashtable
+                --addurl http://thepiratebay.org/torrent
+
+Commands:
+--help                      help
+--hashtable                 prints for each torrent it's hash, index, and name
+--torrentslist              prints torrents list with their properties
+--getsettings               prints utorrent settings
+--getfiles [INDEX]          get the list of files in a torrent job
+--setsettings [STRING]      set setting or multiple settings.
+--getprops [INDEX]          get a list of the various properties for a torrent job
+--start [INDEX]             start torrent
+--stop [INDEX]              stop torrent
+--pause [INDEX]             pause torrent
+--forcestart [INDEX]        force torrent start
+--unpause [INDEX]           unpause torrent
+--recheck [INDEX]           recheck the torrent contents for the specified torrent
+--remove [INDEX]            remove the specified torrent from the torrent jobs list
+--removedata [INDEX]        remove the torrent from the jobs list and it's content
+--removetorrent [INDEX]     remove the torrent from jobs list and the torrent file
+--transferhistory           returns the current transfer history
+--resettransferhistory      resets the current transfer history
+--getversion                returns information about the server
+--listdirs                  returns list of download directories
+--request [REQUEST]         pass your own request to the server
+--setprio [INDEX] [FILE_INDEX] [PRIORITY]           set priority for specified file(s)
+--removedatatorrent [INDEX] remove torrent from the jobs list, it's content and torrent file
+--addurl [URL] [*DOWNLOAD_DIR (integer)] [*PATH]    adds a torrent job from the given URL
+"""
+
 import urllib2
 import re
 import json
 import sys
 import settings
 
+
+
 class Torrent:
+    """ Class contains methods for working with torrents """
 
     def __set_opener(self):
         """ returns an opener with url, user, passwd """
@@ -15,9 +52,7 @@ class Torrent:
         return opener
     
     def __token(self):
-        """
-        extract token and cookie
-        """
+        """ extract token and cookie """
 
         opener = self.__set_opener()
         urllib2.install_opener(opener)
@@ -29,9 +64,7 @@ class Torrent:
         except:
             print "[error]: error opening token page.\nCheck your settings at settings.py.\nexiting."
             sys.exit(0)
-            # exit
             
-
         # get cookie
         cookie = response.headers['Set-Cookie']
         #print "[dbg] Cookie ... " + cookie
@@ -52,10 +85,7 @@ class Torrent:
         return (token, cookie)
     
     def __request(self, action):
-        """
-        all API actions goes thru this method.
-        each action must start with &.
-        """
+        """ all API goes thru this method """
 
         opener = self.__set_opener()
 
@@ -63,10 +93,10 @@ class Torrent:
         try:
             authreuse = open(settings.AUTH_SAVE_PATH, "r")
             token, cookie = authreuse.read().split("%")
-            print "[dbg]: reusing:\nToken: {0}\nCookie: {1}\n".format(token, cookie)
+            #print "[dbg]: reusing:\nToken: {0}\nCookie: {1}\n".format(token, cookie)
         except:
             # token or cookie not reusable, requesting new
-            print "[dbg]: request new token, cookie"
+            #print "[dbg]: request new token, cookie"
             (token, cookie) = self.__token()
         
         # since every request needs a cookie, put it into header.
@@ -74,7 +104,7 @@ class Torrent:
         urllib2.install_opener(opener)
     
         target = settings.WEBUI + "?token=" + token + action
-        print "[dbg] Request ... " + target
+        #print "[dbg] Request ... " + target
 
         try:
             response = urllib2.urlopen(target)
@@ -83,56 +113,50 @@ class Torrent:
             authreuse = open(settings.AUTH_SAVE_PATH, "w")
             authreuse.close()
             sys.exit(0)
-            # exit
                                                                                  
         # we got json
         data = response.read()
-        print "[dbg] Data size: %s\n" % (len(data))
+        #print "[dbg] Data size: %s\n" % (len(data))
         return data
 
     def hashtable(self):
         """ prints for each torrent it's hash, index and name """
         torrents = json.loads(self.__request("&list=1"))['torrents']
         index = 0
+        print "--------------------------------"
         for each in torrents:
-                print "{0} -> {1} -> {2}\n".format(index, each[0], each[2])
+                print "index: {0}\nhash: {1}\ntorrent: {2}".format(index, each[0], each[2])
+                print "--------------------------------"
                 index += 1
 
     def index2hash(self, index):
         """ get torrent index and return torrent hash """
-        print "[dbg]: input: " + str(index)
+        #print "[dbg]: input: " + str(index)
         return json.loads(self.__request("&list=1"))['torrents'][index][0]
 
 
 ##### API ######
     def torrents_list(self):
-        """ API: list=1 """
-        #print self.__request("&list=1")
+        """ prints all torrent jobs """
         torrents = json.loads(self.__request("&list=1"))['torrents']
+
         torrent_props = TorrentProperties(torrents)
         torrent_props.print_all()
 
     def getsettings(self):
-        """ API: action=getsettings """
+        """ prints settings of utorrent """
         print self.__request("&action=getsettings")
         
     def getfiles(self, options):
-        """ API: action=getfiles&hash=[TORRENT HASH] """
-        print '[dbg]: getfiles -> ' + str(options)
+        """ prints torrent files of specified torrent job """
         torrent_index = int(options[0])
         files_json = json.loads(self.__request("&action=getfiles&hash=" + self.index2hash(torrent_index)))
+
         files = TorrentFiles(files_json)
         files.print_files()
-        #return self.__request("&action=getfiles&hash=" + self.index2hash(torrent_index))
 
     def setsettings(self, options):
-        """
-        API:
-            change setting: action=setsetting&s=[SETTING]&v=[VALUE]
-            change _multiple_ settings: action=setsetting&s=[SETTING]&v=[VALUE]&s=[SETTING_2]&v=[VALUE_2]
-            ex: action=setsetting&s=max_ul_rate&v=10&s=max_dl_rate&v=40
-            Instead of False\True use 0\1.
-        """
+        """ set utorrent settings. i.e max_ul_rate=10 """
         settings = re.sub('\s+', '', options[0])
 
         req = '&action=setsetting'
@@ -141,129 +165,114 @@ class Torrent:
             try:
                 (setting, value) = opts.split('=')
             except:
-                print "[Error]: Failed to parse `{0}`".format(options[0])
-                return 0
+                print "[Error]: Failed to parse `{0}`. exiting.".format(options[0])
+                sys.exit(0)
+
+            # build request string
             req += "&s=" + setting + "&v=" + value
 
         self.__request(req)
 
     
-    def torrentprops(self, options):
-        """ API:  action=getprops&hash=[TORRENT HASH] """
-        #print self.__request("&action=getprops&hash=" + self.index2hash(torrent_index))
-        #props_json = json.loads(self.__request("&action=getprops&hash=" + self.index2hash(torrent_index)))['props']
+    def getprops(self, options):
+        """ print properties for specified torrent """
         torrent_index = int(options[0])
         props_dict = json.loads(self.__request("&action=getprops&hash=" + self.index2hash(torrent_index)))['props'][0]
+
         props = TorrentJob(props_dict)
         props.print_props()
 
     def start(self, options):
-        """ API: action=start&hash=[TORRENT HASH] """
+        """ start torrent """
         torrent_index = int(options[0])
         print self.__request("&action=start&hash=" + self.index2hash(torrent_index))
 
     def stop(self, options):
-        """ API: action=stop&hash=[TORRENT HASH] """
+        """ stop torrent """
         torrent_index = int(options[0])
         print self.__request("&action=stop&hash=" + self.index2hash(torrent_index))
 
     def pause(self, options):
-        """ API: action=pause&hash=[TORRENT HASH] """
+        """ pause torrent """
         torrent_index = int(options[0])
         print self.__request("&action=pause&hash=" + self.index2hash(torrent_index))
 
     def forcestart(self, options):
-        """ API: action=forcestart&hash=[TORRENT HASH] """
+        """ force start torrent """
         torrent_index = int(options[0])
         print self.__request("&action=forcestart&hash=" + self.index2hash(torrent_index))
 
     def unpause(self, options):
-        """ API: action=unpause&hash=[TORRENT HASH] """
+        """ unpause torrent """
         torrent_index = int(options[0])
         print self.__request("&action=unpause&hash=" + self.index2hash(torrent_index))
 
     def recheck(self, options):
-        """ API: action=recheck&hash=[TORRENT HASH]  """
+        """ recheck torrent contents """
         torrent_index = int(options[0])
         print self.__request("&action=recheck&hash=" + self.index2hash(torrent_index))
 
     def remove(self, options):
-        """ API: action=remove&hash=[TORRENT HASH]  """
+        """ remove the specified torrent from the torrent jobs list """
         torrent_index = int(options[0])
         print self.__request("&action=remove&hash=" + self.index2hash(torrent_index))
 
     def removedata(self, options):
-        """ API: action=removedata&hash=[TORRENT HASH] """
+        """ remove the torrent from the jobs list and it's content """
         torrent_index = int(options[0])
         print self.__request("&action=removedata&hash=" + self.index2hash(torrent_index))
 
     def removetorrent(self, options):
-        """ API: action=removetorrent&hash=[TORRENT HASH] """
+        """ remove the torrent from jobs list and the torrent file """
         torrent_index = int(options[0])
         print self.__request("&action=removetorrent&hash=" + self.index2hash(torrent_index))
 
     def removedatatorrent(self, options):
-        """ API: action=removedatatorrent&hash=[TORRENT HASH] """
+        """ remove torrent from the jobs list, it's content and torrent file """
         torrent_index = int(options[0])
         print self.__request("&action=removedatatorrent&hash=" + self.index2hash(torrent_index))
 
     def setprio(self, options):
-        """
-        options: torrent_index, priority, file_index
-
-        API: action=setprio&hash=[TORRENTHASH]&p=[PRIORITY]&f=[FILE INDEX]
-        0 = Don't Download
-        1 = Low Priority
-        2 = Normal Priority
-        3 = High Priority
-        """
+        """ set priority for specified file(s) """
 
         torrent_index = int(options[0])
-        priority = int(options[1])
-        file_index = int(options[2])
+        file_index = int(options[1])
+        priority = int(options[2])
+        
         
         print self.__request("&action=setprio&hash=" + self.index2hash(torrent_index)
                        + "&p=" + str(priority) + "&f=" + str(file_index))
 
     def getxferhist(self):
-        """ API: action=getxferhist """
+        """ prints the current transfer history """
         print self.__request("&action=getxferhist")
 
     def resetxferhist(self):
-        """ API: action=resetxferhist  """
+        """ resets the current transfer history """
         print self.__request("&action=resetxferhist")
 
     def getversion(self):
-        """ API: action=getversion """
+        """ prints information about the server """
         print self.__request("&action=getversion")
 
     def addurl(self, options):
-        """ 
-        options: torrent_url, download_dir=0, path=''
+        """ adds a torrent from the given URL """
 
-        API: action=add-url&s=[TORRENT URL]
-        
-        Optional:
-            &download_dir=<integer>
-            &path=<sub_path>
-        """
-
-        
-        torrent_url = options[0]
+        torrent_url = options[0] # first parameter is url
 
         try:
-            download_dir = int(options[1])
+            download_dir = int(options[1]) # second (optional) is the download dir (int)
         except:
             download_dir = 0
 
         try:
-            path = options[2]
+            path = options[2] # thid optional is the path (str)
         except:
             path = ''
     
         addurl_req = "&action=add-url&s=" + torrent_url
         
-        # optional parameters
+        # handle optional parameters
         if download_dir > 0:
             addurl_req += "&download_dir=" + str(download_dir)
         if path != '':
@@ -272,18 +281,11 @@ class Torrent:
         print self.__request(addurl_req)
 
     def addfile(self):
-        """
-        # NOT IMPLEMENTED. have issues with that one.
-        # helpful: http://www.doughellmann.com/PyMOTW/urllib2/
-        
-        API: action=add-file
-        """
+        """ add file from hd. !!NOT IMPLEMENTED!!. """
         print "Sorry, not implemented. See README for workaround."
-        pass
 
     def listdirs(self):
-        """ API: action=list-dirs """
-        #action=list-dirs
+        """ prints list of download directories """
         
         dir_list = json.loads(self.__request("&action=list-dirs"))["download-dirs"]
 
@@ -296,6 +298,9 @@ class Torrent:
             index += 1
 
 ##### ENDOF API ######
+
+
+##### ADDITIONAL #######
             
     def request(self, options):
         """
@@ -307,20 +312,27 @@ class Torrent:
         print self.__request(action)
                 
 
+    def see_help(self):
+        """ help """
+        print __doc__
 
+##### ENDOF ADDITIONAL #######
+
+
+
+# TorrentProperties, TorrentFiles, TorrentJob
+# are classes for extracting data.
 class TorrentProperties:
         """
         This class contains all properties for all torrents.
 
         TODO: some properties contain values in bytes.
                 convert them to mb, kb/s and etc.
-                damn, it's so boring task.
 
         data stucture: [
                         {'hash': '123..', 'name': 'torrent 1'},
                         {'hash': '351..', 'name': 'torrent 2'
                         ]
-                        
         """
         
         def __init__(self, torrents_json):
@@ -372,9 +384,7 @@ completed: {3}
                         
 
 class TorrentFiles:
-        """
-        Class contains properties for torrent files.
-        """
+        """ Class contains properties for torrent files """
         def __init__(self, files_json):
                   self.files  = []
                   self.thash = files_json['files'][0]
@@ -399,21 +409,22 @@ class TorrentFiles:
         def print_files(self):
                 """ print all files of this torrent """
 
-                print "hash: " + self.thash
+                print "torrent hash: " + self.thash
+                file_index = 0
                 for each in self.files:
                         print """
-file: %s
-size: %s
-downloaded: %s
-priority: %s
-""" % (each['filename'], each['filesize'], each['downloaded'], each['priority'])
+index: {0}
+file: {1}
+size: {2}
+downloaded: {3}
+priority: {4}
+""".format(file_index, each['filename'], each['filesize'], each['downloaded'], each['priority'])
+                        file_index += 1
 
 
 
 class TorrentJob:
-        """
-        Class contains properties for torrent job.
-        """
+        """ Class contains properties for torrent job """
 
         def __init__(self, props_dict):
                 self.props = {}
@@ -429,20 +440,20 @@ class TorrentJob:
     
 
 class Executer:
-
-    # preffered command name -> method name (of Torrent class)
-
-
-    # parser
+    """ Class for dealing with console arguments """
+    
     def __init__(self, console_input):
+            
         self.command = ''
         self.options = []
+
+        # preffered command name -> method name (of Torrent class)
         self.aliases = {
             'torrentslist': 'torrents_list',
             'getsettings': 'getsettings',
             'getfiles': 'getfiles',
             'setsettings': 'setsettings',
-            'torrentprops': 'torrentprops',
+            'getprops': 'getprops',
             'start': 'start',
             'stop': 'stop',
             'pause': 'pause',
@@ -461,10 +472,11 @@ class Executer:
             'addfile': 'addfile',
             'listdirs': 'listdirs',
             'request': 'request',
-            'hashtable': 'hashtable'
+            'hashtable': 'hashtable',
+            'help': 'see_help'
         }
 
-        print "[dbg]: console_input: " + str(console_input)
+        #print "[dbg]: console_input: " + str(console_input)
 
         try:    
             cmd = console_input[0]
@@ -483,7 +495,6 @@ class Executer:
         self.command = cmd
         self.options = options
 
-        print "[dbg]: exiting __init__"
         
     def execute_api(self):
         torrent = Torrent()
@@ -494,7 +505,10 @@ class Executer:
         if len(self.options) > 0:
             call_method(self.options) # if options supplied, pass them.
         else:
-            call_method() # otherwise, call method without any options
+            try:
+                call_method() # otherwise, call method without any options
+            except TypeError:
+                print "[error]: error calling method `{0}` with following options: {1}".format(call_method.__name__, self.options)
 
 
     def alias_of(self, command):

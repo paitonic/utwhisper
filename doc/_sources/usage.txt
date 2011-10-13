@@ -1,0 +1,209 @@
+````````````````````````````
+Usage
+````````````````````````````
+
+Add torrent from local drive
+=============================
+Since **addfile** from the API is not implemented there is a workaround for
+	adding .torrent files from your local drive.
+	
+	We will create autoload directory and add it to the **utserver.conf** file.
+		
+	1. create an autoload dir. 
+		When .torrent file will be putted there utserver will add 
+			it automatically.
+
+		``$ mkdir /home/user/torrents-autoload``
+       
+	2. let's add our auto load dir into **utserver.conf**:
+
+		``echo "dir_autoload: /home/user/torrents-autoload/" >> fullpath/utorrent-server-v3_0/utserver.conf``
+
+	Now, just put the torrents file into that dir, and they will be added 
+		automatically.
+
+	``cp torrentfile.torrent /home/user/torrents-autoload``
+
+Set user, passwd, webui
+=======================
+Set `user`, `passwd`, `webui` in settings.py.
+
+Adding a torrent
+================
+``addurl`` comand receives following arguments:
+	1. URL
+	2. Download directory (number) (optional argument)
+	3. Path (optional argument)
+	
+	Download torrent to default download directory:
+	
+	``python utwhisper.py --addurl http://thepiratebay.org/torrent/``
+	
+	
+	Download torrent to download directory 1:
+	
+	``python utwhisper.py --addurl http://thepiratebay.org/wtf.torrent 1``
+	
+
+hashtable command
+=================
+Every torrent has a hash by which it can be identified, since it's very
+long and uncomfortable, an index was assigned to every hash.
+
+All commands working with the index parameter instead of hash.
+To see list of torrents and their hashes, indexes use hashtable command:
+
+	``python utwhisper.py --hashtable``
+
+Output:
+
+	index:0
+	hash:5D4C6DA550FA6B9BD18E1A4B0F9CBB0092B206B3
+	torrent:Movie.avi
+
+	index:1
+	hash:74612CAD42525DD50F6BDB56V395C5DE84175D38
+	torrent:tv-series.avi
+
+	index:2
+	hash:91ACF1734F3BD8E64D4430CFF72992D5AC083C43
+	torrent:wallpapers.rar
+
+
+
+Stop/Start/Pause/Unpause/Forcestart
+===================================
+
+start torrent:
+
+	``python utwhisper.py --start INDEX``
+
+stop torrent:
+
+	``python utwhisper.py --stop INDEX``
+
+pause torrent:  
+   
+	``python utwhisper.py --pause INDEX`` 
+
+force start torrent:  
+         
+	``python utwhisper.py --forcestart INDEX``
+
+unpause torrent:
+
+	``python utwhisper.py --unpause INDEX``
+
+
+Torrents list
+=============
+To see all torrent jobs:
+
+	``python utwhisper.py --torrentslist [INDEX]``
+
+View utorrent settings
+======================
+``python utwhisper.py --getsettings``
+
+Set utorrent settings
+=====================
+``python utwhisper.py --setsettings [SETTING=VALUE]``
+
+You can set settings using SETTING=VALUE format
+
+
+Example: 
+
+	``python utwhisper.py --setsettings gui.graphic_progress=0``
+
+*Note: use 1/0 instead of true/false.*
+
+See what files and their properties included in specific torrent
+================================================================
+``--getfiles 0``
+
+
+See properties for a torrent job
+=================================
+``--getprops INDEX``
+
+
+Recheck torrent contents for a torrent
+======================================
+``--recheck INDEX``
+
+
+Remove torrent from the job list
+================================
+``--remove INDEX``
+
+Remove torrent from the job list and it's content
+=================================================
+``--removedata INDEX``
+
+Remove torrent from the job list and torrent files itself
+=========================================================
+``--removetorrent INDEX``
+
+
+Remove content, torrent file, and job from the job list
+=======================================================
+``--removedatatorrent INDEX``
+
+
+Transfer history
+================
+``--transferhistory``
+
+Information about the server
+============================
+``--getversion``
+
+
+List of download directories
+============================
+``--listdirs``
+
+
+Pass your own request to the server
+===================================
+``--request REQUEST``
+
+example 1: 
+
+	``python utwhisper.py --request getsettings``
+	
+	
+example 2:
+	
+	``python utwhisper.py --request "getfiles&hash=1A824A2D4399A5F1CAED59B31CD91F0F513967BB"``
+
+
+Set priority for a file in a torrent job
+========================================
+``--setprio INDEX FILE_INDEX PRIORITY``
+
+PRIORITY can be one of the following:
+
+
+	``0 = Don't download``
+	
+	``1 = Low priority``
+	
+	``2 = Normal priority``
+	
+	``3 = High priority``
+
+
+FILE_INDEX, files in a torrent job have index too, use ``--getfiles INDEX`` to find out the index.
+
+example: 
+
+	``python utwhisper.py --setprio 3 4 0``
+	
+read as: for torrent number 3, for file number 4, set priority to 0 (Dont Download)
+
+
+ 
+
+
