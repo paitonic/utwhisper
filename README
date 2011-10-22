@@ -3,10 +3,10 @@ utwhisper -- control your utserver (utorrent for linux) using console.
 
 Tested with Python 2.7.2.
 
-TODO:
+Help:		
+python utwhisper.py --help
+see doc/ for index.html too.
 
-	* addfile method NOT implemented. see below for workaround.
-	* at TorrentFiles, TorrentJob, TorrentProperties some types need to be
-		converted into more human-friendly format. i.e bytes into MB and etc.
-		
-See doc/ for more.
+Notes:
+Your utserver must be running.
+Edit settings.py (server, user, passwd).
