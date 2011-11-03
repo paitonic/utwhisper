@@ -121,14 +121,13 @@ class Torrent:
 		cookie = response.headers['Set-Cookie']
 		#print "[dbg] Cookie ... " + cookie
 		
-		response = response.read()
+		hrml_page = response.read()
 		response.close()
 		
 		# extract token
 		token = re.compile('>([^<]+)<')
-		matches = re.search(token, response)
+		matches = re.search(token, hrml_page)
 		token = matches.group(0)[1:-1]
-		#print "[dbg] Token ... " + token
 
 		# save token & cookie for reuse.
 		authreuse = open(settings.AUTH_SAVE_PATH, "w")
@@ -566,7 +565,7 @@ class Executer:
 		command = re.sub(r'-+', '', command) # remove --, -
 		
 		torrent = Torrent()
-		#print "[dbg]: executing: {0}".format(self.alias_of(self.command))
+		#print "[dbg]: executing: {0}".format(self.alias_of(command))
 		
 		if aliases.has_key(command):
 			call_method = getattr(torrent, aliases[command])
@@ -577,10 +576,10 @@ class Executer:
 		if len(options) > 0:
 			call_method(options) # if options supplied, pass them.
 		else:
-			try:
-				call_method() # otherwise, call method without any options
-			except TypeError:
-				print "[error]: error calling method `{0}` with following options: {1}".format(call_method.__name__, self.options)
+			#try:
+			call_method() # otherwise, call method without any options
+			#except TypeError:
+				#print "[error]: error calling method `{0}` with following options: `{1}`".format(call_method.__name__, options)
 
 
 ###### REPRESENT FUNCTIONS
