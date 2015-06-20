@@ -441,7 +441,7 @@ size: {2}
 completed: {3}%
 status: {4}
 """.format(index, 
-		each['name'], 
+		each['name'].encode('utf-8'),
 		repr_size(each['size']), 
 		float(each['percent progress']) / 10.0,
 		repr_status(each['status']))
